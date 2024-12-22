@@ -13,4 +13,4 @@ def test_subtract():
 
 # To demonstrate a failing test (optional)
 def test_fail():
-    assert subtract(2, 2) == 0  # This will fail
+    assert subtract(2, 2) == 3  # This will fail
