@@ -1,0 +1,40 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Setup Environment') {
+            steps {
+                // Install dependencies
+                sh 'python3 -m venv venv'
+                sh '. venv/bin/activate && pip install -r requirements.txt'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                // Run pytest and generate a JUnit XML report
+                sh '. venv/bin/activate && pytest --junitxml=reports/results.xml'
+            }
+        }
+
+        stage('Archive Results') {
+            steps {
+                // Archive the test results in Jenkins
+                junit 'reports/results.xml'
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Cleaning up...'
+            sh 'rm -rf venv'
+        }
+        success {
+            echo 'Tests executed successfully!'
+        }
+        failure {
+            echo 'Some tests failed.'
+        }
+    }
+}
