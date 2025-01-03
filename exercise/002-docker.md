@@ -229,3 +229,122 @@
   3. Configure secrets management using `docker secret`.
 
 ---
+
+**Docker Compose** example to demonstrate how to define and run multiple services using a `docker-compose.yml` file.
+
+### **1. Example Use Case**
+A simple application with:
+1. A **web service** running an Nginx server.
+2. A **database service** using MySQL.
+
+
+### **2. `docker-compose.yml` File**
+
+```yaml
+version: '3.8'
+
+services:
+  web:
+    image: nginx:latest
+    container_name: web-container
+    ports:
+      - "8080:80" # Map localhost:8080 to container's port 80
+    volumes:
+      - ./html:/usr/share/nginx/html # Mount local directory for web content
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    container_name: db-container
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: mydatabase
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: mypassword
+    ports:
+      - "3306:3306" # Map MySQL's default port
+    volumes:
+      - db-data:/var/lib/mysql # Persist MySQL data
+
+volumes:
+  db-data:
+```
+
+
+### **3. Directory Structure**
+```
+project/
+├── docker-compose.yml
+├── html/
+│   └── index.html
+```
+
+- `html/index.html`: Your website content. Example:
+  ```html
+  <html>
+    <head>
+      <title>Welcome</title>
+    </head>
+    <body>
+      <h1>Hello from Nginx!</h1>
+    </body>
+  </html>
+  ```
+
+
+### **4. Commands to Run**
+1. **Start Services:**
+   ```bash
+   docker-compose up
+   ```
+   - Adds `-d` to run in detached mode:
+     ```bash
+     docker-compose up -d
+     ```
+
+2. **Stop Services:**
+   ```bash
+   docker-compose down
+   ```
+
+3. **List Running Containers:**
+   ```bash
+   docker-compose ps
+   ```
+
+4. **Rebuild Services:**
+   If you've updated the configuration:
+   ```bash
+   docker-compose up --build
+   ```
+
+
+### **5. Explanation**
+- **Services:**
+  - `web`: Runs an Nginx server.
+  - `db`: Runs a MySQL database.
+- **Volumes:**
+  - Ensures MySQL data persists even after the container is stopped.
+- **Ports:**
+  - Maps host ports to container ports for external access.
+- **Dependencies:**
+  - `depends_on`: Ensures `db` service starts before `web`.
+
+
+### **6. Extending the Example**
+- Add an **application service** (e.g., a Python Flask app):
+  ```yaml
+  app:
+    build:
+      context: ./app
+    container_name: app-container
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+  ```
+  - Create a Dockerfile in the `./app` directory for your Flask app.
+
+---
+
