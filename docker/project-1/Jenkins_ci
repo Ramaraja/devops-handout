@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') // Jenkins credentials ID for Docker Hub
-        DOCKER_IMAGE = "${DOCKERHUB_CREDENTIALS_USR}/test-webapp"
+        DOCKER_IMAGE = "${DOCKERHUB_CREDENTIALS_USR}/prd-webapp"
         DOCKER_TAG = "latest"
         WORKING_DIR = "docker/project-1/"
     }
