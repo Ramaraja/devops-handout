@@ -348,3 +348,191 @@ project/
 
 ---
 
+
+### **Docker Network Overview**
+Docker networking allows containers to communicate with each other and the outside world. Docker provides several networking modes, including:
+
+1. **Bridge Network (default):**
+   - Containers communicate with each other using their internal IPs.
+   - Containers can access the host system and external networks via NAT.
+
+2. **Host Network:**
+   - The container shares the host machine's network stack.
+   - No isolation from the host.
+
+3. **None Network:**
+   - No network for the container. Fully isolated.
+
+4. **Overlay Network:**
+   - Allows containers on different hosts to communicate securely.
+   - Used in Docker Swarm or Kubernetes.
+
+5. **Macvlan Network:**
+   - Assigns a MAC address to containers, making them appear as physical devices on the network.
+
+---
+
+### **Docker Network Commands**
+
+1. **List Networks:**
+   ```bash
+   docker network ls
+   ```
+
+2. **Inspect a Network:**
+   ```bash
+   docker network inspect <network_name>
+   ```
+
+3. **Create a Network:**
+   ```bash
+   docker network create my-network
+   ```
+
+4. **Remove a Network:**
+   ```bash
+   docker network rm my-network
+   ```
+
+5. **Connect a Container to a Network:**
+   ```bash
+   docker network connect my-network my-container
+   ```
+
+6. **Disconnect a Container from a Network:**
+   ```bash
+   docker network disconnect my-network my-container
+   ```
+
+---
+
+### **Docker Network**
+
+#### **1. Default Bridge Network**
+1. Start two containers without specifying a network:
+   ```bash
+   docker run -d --name container1 alpine sleep 1000
+   docker run -d --name container2 alpine sleep 1000
+   ```
+
+2. Test connectivity:
+   ```bash
+   docker exec container1 ping -c 2 container2
+   ```
+   - **Expected result:** Fails because default bridge network does not allow automatic name resolution.
+
+3. Connect both containers to a user-defined bridge:
+   ```bash
+   docker network create my-bridge
+   docker network connect my-bridge container1
+   docker network connect my-bridge container2
+   ```
+
+4. Test connectivity again:
+   ```bash
+   docker exec container1 ping -c 2 container2
+   ```
+   - **Expected result:** Success.
+
+---
+
+#### **2. Host Network**
+1. Run a container with the host network:
+   ```bash
+   docker run --rm --network host -d nginx
+   ```
+
+2. Access the service:
+   - Open a browser and navigate to `http://localhost` to see the Nginx default page.
+
+3. Check container processes on the host:
+   ```bash
+   netstat -tuln
+   ```
+
+---
+
+#### **3. Overlay Network (Docker Swarm)**
+1. Enable Docker Swarm:
+   ```bash
+   docker swarm init
+   ```
+
+2. Create an overlay network:
+   ```bash
+   docker network create -d overlay my-overlay
+   ```
+
+3. Deploy a service to the overlay network:
+   ```bash
+   docker service create --name my-service --network my-overlay -p 8080:80 nginx
+   ```
+
+4. Verify:
+   ```bash
+   docker network inspect my-overlay
+   ```
+
+---
+
+#### **4. Macvlan Network**
+1. Create a Macvlan network:
+   ```bash
+   docker network create -d macvlan \
+       --subnet=192.168.1.0/24 \
+       --gateway=192.168.1.1 \
+       -o parent=eth0 my-macvlan
+   ```
+
+2. Run a container on the Macvlan network:
+   ```bash
+   docker run --rm --net my-macvlan --ip 192.168.1.100 -it alpine ash
+   ```
+
+3. Test connectivity:
+   - Ping other devices on the same subnet.
+
+---
+
+#### **5. Docker Compose with Custom Network**
+Create a `docker-compose.yml` file:
+
+```yaml
+version: '3.8'
+
+services:
+  app:
+    image: nginx
+    networks:
+      - my-custom-network
+
+  db:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    networks:
+      - my-custom-network
+
+networks:
+  my-custom-network:
+    driver: bridge
+```
+
+Run the setup:
+```bash
+docker-compose up
+```
+
+Inspect the network:
+```bash
+docker network inspect my-custom-network
+```
+
+
+### **Key Commands Cheat Sheet**
+- **Create Network:** `docker network create <name>`
+- **Inspect Network:** `docker network inspect <name>`
+- **Delete Network:** `docker network rm <name>`
+- **List Networks:** `docker network ls`
+
+---
