@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: replicaset
+spec:
+  template:
+    metadata:
+      name: nginx-pod
+      labels:
+        demo: k8s-handson
+    spec:
+      containers:
+      - name: nginx-server
+        image: nginx
+        imagePullPolicy: IfNotPresent
+
+  replicas: 2
+  selector:
+    matchLabels:
+      demo: k8s-handson
