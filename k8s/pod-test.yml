@@ -11,3 +11,18 @@ spec:
       ports:
         - name: web-port-1
           containerPort: 80
+      envFrom:
+        - configMapRef:
+            name: user-config
+
+        - secretRef:
+            name: user-secret
+
+      volumeMounts:
+        - mountPath: "/data"
+          name: pv-test
+
+  volumes:
+    - name: pv-test
+      persistentVolumeClaim:
+        claimName: pvtest-claim

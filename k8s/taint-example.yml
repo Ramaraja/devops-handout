@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: taint-toleration-example
+spec:
+  # tolerations:
+  #   - key: "key"
+  #     operator: "Equal"
+  #     value: "value"
+  #     effect: "NoSchedule"
+  containers:
+    - name: nginx
+      image: nginx
+
+
+# kubectl taint nodes <nodename> key=value:NoSchedule
+
+
+# kubectl taint nodes <nodename> critical=true:NoExecute
+# running pods without a toleration will be evicted.
+# tolerations:
+#   - key: "critical"
+#     operator: "Equal"
+#     value: "true"
+#     effect: "NoExecute"
+
+
+

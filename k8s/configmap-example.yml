@@ -4,3 +4,5 @@ metadata:
   name: user-config
 data:
   username: ramaraja
+  password: testpass
+  test: test
