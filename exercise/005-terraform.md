@@ -1,5 +1,14 @@
-### **Terraform Exercises**
+### **Terraform Core Concepts**
+| Concept | Description |
+|---------|-------------|
+| **Providers** | Interfaces with cloud providers (AWS, Azure, GCP). |
+| **Resources** | Defines infrastructure components (VMs, networks, storage). |
+| **Variables** | Stores dynamic values. |
+| **State** | Keeps track of managed resources. |
+| **Modules** | Reusable components for infrastructure. |
 
+---
+### **Terraform Exercises**
 **Infrastructure as Code (IaC)**.  
 
 ---
