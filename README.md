@@ -27,6 +27,8 @@ https://kubernetes.io/docs/reference/kubectl/quick-reference/
 
 https://spacelift.io/blog/kubernetes-cheat-sheet
 
+https://minikube.sigs.k8s.io/docs/
+
 ---
 **Terraform**
 
