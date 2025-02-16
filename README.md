@@ -43,4 +43,6 @@ https://docs.ansible.com/ansible/latest/getting_started/index.html
 
 https://docs.ansible.com/ansible/latest/command_guide/cheatsheet.html
 
+https://docs.ansible.com/ansible/latest/collections/index_module.html
+
 ---
