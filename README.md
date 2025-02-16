@@ -46,3 +46,9 @@ https://docs.ansible.com/ansible/latest/command_guide/cheatsheet.html
 https://docs.ansible.com/ansible/latest/collections/index_module.html
 
 ---
+
+**Prometheus
+
+https://prometheus.io/docs/prometheus/latest/getting_started/
+
+---
