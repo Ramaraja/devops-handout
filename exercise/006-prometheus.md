@@ -275,3 +275,148 @@ curl http://localhost:9090/api/v1/rules | jq
 
 ---
 
+### **PromQL (Prometheus Query Language) Examples**  
+
+PromQL is used in Prometheus to **query metrics** for monitoring and alerting. Here are **commonly used queries** for CPU, memory, disk, network, and application monitoring.  
+
+
+## **1. CPU Metrics Queries**
+### **Total CPU Usage (All Cores)**
+```promql
+rate(node_cpu_seconds_total[5m])
+```
+Returns **CPU usage** for all cores, including idle, user, system, etc.  
+
+### **User CPU Usage (Last 5 min)**
+```promql
+rate(node_cpu_seconds_total{mode="user"}[5m])
+```
+Shows CPU time spent in **user processes**.  
+
+### **CPU Usage % (Excluding Idle)**
+```promql
+100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+```
+Calculates the **actual CPU usage** by subtracting idle time from 100%.  
+
+### **High CPU Alert (Above 80%)**
+```promql
+(avg by(instance) (rate(node_cpu_seconds_total{mode="user"}[5m])) * 100) > 80
+```
+**Triggers an alert** if CPU usage is above **80%** for a specific instance.  
+
+---
+
+## **2. Memory Metrics Queries**
+### **Total Available Memory**
+```promql
+node_memory_MemTotal_bytes
+```
+Shows **total installed RAM** in bytes.  
+
+### **Used Memory (Excluding Cache & Buffers)**
+```promql
+(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100
+```
+**Calculates actual memory usage** (excluding buffers/cache).  
+
+### **Memory Usage Above 80% Alert**
+```promql
+(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 80
+```
+**Triggers an alert** if memory usage goes beyond **80%**.  
+
+---
+
+## **3. Disk Usage Queries**
+### **Free Disk Space (Root Partition)**
+```promql
+node_filesystem_free_bytes{mountpoint="/"}
+```
+Shows available disk space in bytes for the **root (`/`) partition**.  
+
+### **Disk Usage Percentage**
+```promql
+(1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})) * 100
+```
+Calculates **disk usage as a percentage** for `/`.  
+
+### **Low Disk Space Alert (<10GB Available)**
+```promql
+node_filesystem_free_bytes{mountpoint="/"} < 10 * 1024 * 1024 * 1024
+```
+**Triggers an alert** if disk space is **less than 10GB**.  
+
+---
+
+## **4. Network Metrics Queries**
+### **Network Traffic (Received)**
+```promql
+rate(node_network_receive_bytes_total[5m])
+```
+Shows **bytes received per second** over the last 5 minutes.  
+
+### **Network Traffic (Transmitted)**
+```promql
+rate(node_network_transmit_bytes_total[5m])
+```
+Shows **bytes transmitted per second** over the last 5 minutes.  
+
+### **High Network Traffic Alert (Above 100MB/s)**
+```promql
+rate(node_network_transmit_bytes_total[5m]) > 100 * 1024 * 1024
+```
+**Triggers an alert** if network traffic exceeds **100MB/s**.  
+
+---
+
+### **5. HTTP Requests Queries**
+### **Total HTTP Requests (All Endpoints)**
+```promql
+sum(rate(http_requests_total[5m]))
+```
+Shows the **total number of HTTP requests per second**.  
+
+### **HTTP Requests by Status Code**
+```promql
+sum(rate(http_requests_total[5m])) by (status)
+```
+Groups HTTP requests by **status code (200, 404, 500, etc.)**.  
+
+### **High 500 Errors Alert**
+```promql
+sum(rate(http_requests_total{status="500"}[5m])) > 10
+```
+**Triggers an alert** if there are more than **10 HTTP 500 errors per second**.  
+
+---
+
+## **6. Application-Specific Queries**
+### **Active Database Connections (PostgreSQL Example)**
+```promql
+pg_stat_activity_count
+```
+Shows the **current number of active connections** to PostgreSQL.  
+
+### **Redis Cache Hit Ratio**
+```promql
+rate(redis_keyspace_hits[5m]) / (rate(redis_keyspace_hits[5m]) + rate(redis_keyspace_misses[5m]))
+```
+Measures **how often Redis serves data from cache** instead of querying the database.  
+
+---
+
+### **Instances with High CPU & Memory Usage**
+```promql
+topk(5, (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100)
+```
+Lists the **top 5 instances** with the highest memory usage.  
+
+### **Error Rate for Microservices**
+```promql
+sum(rate(http_requests_total{status=~"5.."}[5m])) by (service)
+```
+Shows **error rates per microservice** (matching 5xx status codes).  
+
+---
+
