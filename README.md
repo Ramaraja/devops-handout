@@ -1,4 +1,4 @@
-## devops-repo-2024
+## devops-handout
 
 This repo is to practice devops tools and tryout demo files and exercises
 
