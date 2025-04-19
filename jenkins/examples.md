@@ -48,6 +48,36 @@ pipeline {
 }
 ```
 -------
+#### Sonarqube integration
+```
+pipeline {
+    agent any
+
+
+    environment {
+        // Optional: if using token
+        SONAR_TOKEN = credentials('sonarqube') // if you're passing credentials
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/ramaraja/devops-repo.git'
+            }
+        }
+
+        stage('Code Analysis') {
+            steps {
+                withSonarQubeEnv('sonarqube-server') { // This name must match what you configured
+                    sh 'sonar-scanner -Dsonar.projectKey=my-app -Dsonar.sources=src'
+                }
+            }
+        }
+    }
+}
+
+```
+-------
 #### Docker build Image and Pushing to hub
 ```
 pipeline {
