@@ -1,0 +1,157 @@
+pipeline {
+    agent {
+        docker {
+            image 'node:16-alpine' // Using Node.js for React application
+            args '-p 3000:3000' // Map port for development server
+        }
+    }
+    
+    environment {
+        // Environment variables
+        NPM_CONFIG_CACHE = "${WORKSPACE}/.npm" // Custom npm cache location
+        REACT_APP_API_URL = 'https://api.example.com' // Your react page
+        // Add credentials for deployment - for docker create and push
+        DOCKER_REGISTRY_CREDENTIALS = credentials('docker-registry-credentials')
+        DEPLOYMENT_SERVER_CREDENTIALS = credentials('deployment-server-credentials')
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                // Get code from repository
+                checkout scm
+                sh 'node --version'
+                sh 'npm --version'
+            }
+        }
+        
+        stage('Install Dependencies') {
+            steps {
+                // Install all dependencies
+                sh 'npm ci'
+            }
+            post {
+                // Cache the dependencies to speed up future builds
+                success {
+                    cache(path: "${WORKSPACE}/node_modules", key: "node-modules-${hashFiles('package-lock.json')}")
+                }
+            }
+        }
+        
+        stage('Code Quality') {
+            parallel {
+                stage('Lint') {
+                    steps {
+                        // Run ESLint
+                        sh 'npm run lint'
+                    }
+                }
+                
+                stage('Type Check') {
+                    steps {
+                        // Run TypeScript type checking if applicable
+                        sh 'npm run typecheck || echo "No typecheck command configured"'
+                    }
+                }
+            }
+        }
+        
+        stage('Unit Tests') {
+            steps {
+                // Run unit tests with Jest
+                sh 'npm test -- --coverage'
+            }
+            post {
+                // Archive test results and coverage reports
+                always {
+                    junit 'coverage/junit.xml'
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'coverage/lcov-report',
+                        reportName: 'Coverage Report',
+                        reportTitles: 'Coverage Report'
+                    ])
+                }
+            }
+        }
+        
+        stage('Build') {
+            steps {
+                // Build for production
+                sh 'npm run build'
+            }
+            post {
+                success {
+                    // Archive the build artifacts
+                    archiveArtifacts artifacts: 'build/**/*', fingerprint: true
+                }
+            }
+        }
+        
+        stage('Security Scan') {
+            steps {
+                // Run npm audit to check for vulnerabilities
+                sh 'npm audit --production'
+
+            }
+        }
+        
+        stage('Create Docker Image') {
+            when {
+                branch 'main' // Only run on main branch
+            }
+            agent {
+                docker {
+                    image 'docker:20.10.14-dind'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
+                }
+            }
+            steps {
+                // Build and tag Docker image
+                sh '''
+                    docker build -t react-app:${BUILD_NUMBER} -t react-app:latest .
+                    docker tag react-app:${BUILD_NUMBER} my-registry.example.com/react-app:${BUILD_NUMBER}
+                    docker tag react-app:${BUILD_NUMBER} my-registry.example.com/react-app:latest
+                '''
+            }
+        }
+        
+        stage('Push to Registry') {
+            when {
+                branch 'main' // Only run on main branch
+            }
+            agent {
+                docker {
+                    image 'docker:20.10.14-dind'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
+                }
+            }
+            steps {
+                // Login to Docker registry and push images
+                sh '''
+                    echo ${DOCKER_REGISTRY_CREDENTIALS_PSW} | docker login my-registry.example.com -u ${DOCKER_REGISTRY_CREDENTIALS_USR} --password-stdin
+                    docker push my-registry.example.com/react-app:${BUILD_NUMBER}
+                    docker push my-registry.example.com/react-app:latest
+                '''
+            }
+        }
+        
+    }
+    
+    post {
+        success {
+            // Send success notification
+
+        }
+        failure {
+            // Send failure notification
+
+        }
+        always {
+            // Clean workspace
+            cleanWs()
+        }
+    }
+}
