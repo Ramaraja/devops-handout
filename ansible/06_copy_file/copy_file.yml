@@ -1,0 +1,7 @@
+- name: Copy a static file
+  hosts: local
+  tasks:
+    - name: Copy demo.txt to /tmp/demo.txt
+      ansible.builtin.copy:
+        src: demo.txt
+        dest: /tmp/demo.txt

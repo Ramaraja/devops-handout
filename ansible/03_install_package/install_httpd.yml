@@ -1,0 +1,8 @@
+- name: Install HTTPD
+  hosts: local
+  become: yes
+  tasks:
+    - name: Install httpd
+      ansible.builtin.package:
+        name: httpd
+        state: present

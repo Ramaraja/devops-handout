@@ -1,0 +1,21 @@
+- name: Notify multiple handlers
+  hosts: local
+  become: yes
+  tasks:
+    - name: Change file that triggers both handlers
+      ansible.builtin.copy:
+        content: "changed content"
+        dest: /tmp/multi_handler_demo.txt
+      notify:
+        - Print confirmation
+        - Touch indicator file
+
+  handlers:
+    - name: Print confirmation
+      ansible.builtin.debug:
+        msg: "File changed, handler triggered."
+
+    - name: Touch indicator file
+      ansible.builtin.file:
+        path: /tmp/handler_triggered.txt
+        state: touch

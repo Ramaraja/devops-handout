@@ -1,0 +1,5 @@
+- name: Apply web role
+  hosts: local
+  become: yes
+  roles:
+    - web

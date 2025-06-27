@@ -1,0 +1,8 @@
+- name: Add a new user
+  hosts: local
+  become: yes
+  tasks:
+    - name: Add user 'demo'
+      ansible.builtin.user:
+        name: demo
+        state: present

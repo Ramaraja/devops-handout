@@ -1,0 +1,9 @@
+- name: Ensure httpd is running
+  hosts: local
+  become: yes
+  tasks:
+    - name: Start httpd
+      ansible.builtin.service:
+        name: httpd
+        state: started
+        enabled: yes

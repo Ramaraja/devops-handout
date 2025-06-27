@@ -1,0 +1,6 @@
+- name: Gather and display facts
+  hosts: local
+  tasks:
+    - name: Show default IPv4 address
+      debug:
+        msg: "IP Address: {{ ansible_default_ipv4.address }}"

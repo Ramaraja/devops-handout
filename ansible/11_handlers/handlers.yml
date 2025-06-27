@@ -1,0 +1,15 @@
+- name: Use handlers to restart service
+  hosts: local
+  become: yes
+  tasks:
+    - name: Install httpd
+      ansible.builtin.package:
+        name: httpd
+        state: present
+      notify: Restart httpd
+
+  handlers:
+    - name: Restart httpd
+      ansible.builtin.service:
+        name: httpd
+        state: restarted

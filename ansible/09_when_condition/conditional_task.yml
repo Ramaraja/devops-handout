@@ -1,0 +1,7 @@
+- name: Conditional task
+  hosts: local
+  tasks:
+    - name: Only runs on RedHat
+      ansible.builtin.debug:
+        msg: "This is a RedHat system."
+      when: ansible_facts['os_family'] == "RedHat"

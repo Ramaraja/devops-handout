@@ -1,0 +1,7 @@
+- name: Templating facts into a file
+  hosts: local
+  tasks:
+    - name: Template hostname into file
+      ansible.builtin.template:
+        src: hostname.j2
+        dest: /tmp/hostname_info.txt

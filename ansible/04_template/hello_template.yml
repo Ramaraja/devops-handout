@@ -1,0 +1,7 @@
+- name: Deploy a templated file
+  hosts: local
+  tasks:
+    - name: Template file
+      ansible.builtin.template:
+        src: hello.j2
+        dest: /tmp/hello.txt
