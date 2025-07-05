@@ -1,0 +1,12 @@
+route:
+  group_by: ['alertname']
+  receiver: 'email-alert'
+
+receivers:
+  - name: 'email-alert'
+    email_configs:
+      - to: 'your@email.com'
+        from: 'prometheus@monitoring.local'
+        smarthost: 'smtp.example.com:587'
+        auth_username: 'your@email.com'
+        auth_password: 'yourpassword'
