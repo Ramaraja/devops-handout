@@ -1,6 +1,6 @@
 ## devops-handout
 
-This repo is to practice devops tools and tryout demo files and exercises
+This repo is to practice devops tools and tryout demo files and exercises.
 
 ---
 ### Useful Links:
