@@ -1,0 +1,107 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE = 'ramaraja/flask-task-api'
+        DOCKER_TAG = 'latest'
+        DOCKER_BUILD_NUMBER = "${BUILD_NUMBER}"
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
+        SONAR_TOKEN = credentials('sonar-token') // Add this in Jenkins credentials
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Checkout code from repository
+                checkout scm
+            }
+        }
+
+        stage('Setup Python Environment') {
+            steps {
+                // Create and activate virtual environment
+                sh '''
+                    python -m venv .venv
+                    . .venv/bin/activate
+                    pip install -r requirements.txt
+                '''
+            }
+        }
+
+        stage('Run Tests with Coverage') {
+            steps {
+                // Activate venv and run tests with coverage
+                sh '''
+                    . .venv/bin/activate
+                    pytest --cov=. --cov-report=xml --junitxml=test-results.xml
+                '''
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            environment {
+                SONAR_HOST_URL = 'http://sonarqube-server:9000' // Update this with SonarQube server URL
+            }
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh '''
+                        sonar-scanner \
+                            -Dsonar.host.url=$SONAR_HOST_URL \
+                            -Dsonar.login=$SONAR_TOKEN
+                    '''
+                }
+                // Wait for quality gate result
+                timeout(time: 2, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        stage('Build and Push Docker Image') {
+            steps {
+                // Login to Docker Hub
+                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                
+                // Build the Docker image
+                sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} -t ${DOCKER_IMAGE}:build-${DOCKER_BUILD_NUMBER} ."
+                
+                // Push the Docker image
+                sh """
+                    docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
+                    docker push ${DOCKER_IMAGE}:build-${DOCKER_BUILD_NUMBER}
+                """
+            }
+            post {
+                always {
+                    sh 'docker logout'
+                }
+            }
+        }
+
+        stage('Run Docker Container') {
+            steps {
+                // Stop existing container if running
+                sh '''
+                    docker ps -q --filter "name=flask-task-api" | grep -q . && docker stop flask-task-api || true
+                    docker ps -aq --filter "name=flask-task-api" | grep -q . && docker rm flask-task-api || true
+                '''
+                
+                // Run new container
+                sh "docker run -d -p 5000:5000 --name flask-task-api ${DOCKER_IMAGE}:${DOCKER_TAG}"
+            }
+        }
+    }
+
+    post {
+        always {
+            // Clean up workspace
+            cleanWs()
+        }
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed!'
+        }
+    }
+}

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .task-form {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+        .task-list {
+            list-style: none;
+            padding: 0;
+        }
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .task-item input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        .task-item button {
+            margin-left: auto;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button.delete {
+            background-color: #f44336;
+        }
+        input[type="text"] {
+            padding: 8px;
+            width: 60%;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Task Manager</h1>
+    
+    <div class="task-form">
+        <input type="text" id="newTask" placeholder="Enter a new task">
+        <button onclick="addTask()">Add Task</button>
+    </div>
+
+    <ul id="taskList" class="task-list">
+    </ul>
+
+    <script>
+        // Load tasks when page loads
+        document.addEventListener('DOMContentLoaded', loadTasks);
+
+        function loadTasks() {
+            fetch('/tasks')
+                .then(response => response.json())
+                .then(tasks => {
+                    const taskList = document.getElementById('taskList');
+                    taskList.innerHTML = '';
+                    tasks.forEach(task => {
+                        addTaskToList(task);
+                    });
+                });
+        }
+
+        function addTask() {
+            const input = document.getElementById('newTask');
+            const title = input.value.trim();
+            
+            if (!title) return;
+
+            fetch('/tasks', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ title: title })
+            })
+            .then(response => response.json())
+            .then(task => {
+                addTaskToList(task);
+                input.value = '';
+            });
+        }
+
+        function addTaskToList(task) {
+            const taskList = document.getElementById('taskList');
+            const li = document.createElement('li');
+            li.className = 'task-item';
+            li.innerHTML = `
+                <input type="checkbox" ${task.completed ? 'checked' : ''} 
+                       onchange="updateTask(${task.id}, this.checked)">
+                <span>${task.title}</span>
+                <button class="delete" onclick="deleteTask(${task.id}, this)">Delete</button>
+            `;
+            taskList.appendChild(li);
+        }
+
+        function updateTask(id, completed) {
+            fetch(`/tasks/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ completed: completed })
+            });
+        }
+
+        function deleteTask(id, button) {
+            fetch(`/tasks/${id}`, {
+                method: 'DELETE'
+            })
+            .then(() => {
+                button.parentElement.remove();
+            });
+        }
+    </script>
+</body>
+</html>
