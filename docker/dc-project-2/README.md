@@ -27,4 +27,4 @@
 
 
 
-curl -X POST http://localhost:9000/add -H "Content-Type: application/json" -d '{"name": "Ramaraja}'
+> curl -X POST http://localhost:9000/add -H "Content-Type: application/json" -d '{"name": "Ramaraja}'
