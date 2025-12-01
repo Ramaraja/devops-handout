@@ -1,0 +1,4 @@
+Flask
+Werkzeug
+mysql-connector-python==8.0.25
+
